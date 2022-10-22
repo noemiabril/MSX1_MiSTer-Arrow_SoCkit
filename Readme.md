@@ -1,3 +1,8 @@
+Author: tdlbac / Molekula
+
+Original URL for MiSTer DE10-Nano: https://github.com/tdlabac/MSX1_MiSTer
+
+
 # Template core for MiSTer
 
 ## General description
