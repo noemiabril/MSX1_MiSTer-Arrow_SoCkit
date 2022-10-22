@@ -194,7 +194,12 @@ assign LED_USER = 0;
 assign BUTTONS = 0;
 
 //////////////////////////////////////////////////////////////////
-
+// Status Bit Map:
+//              Upper                          Lower
+// 0         1         2         3          4         5         6
+// 01234567890123456789012345678901 23456789012345678901234567890123
+// 0123456789ABCDEFGHIJKLMNOPQRSTUV 0123456789ABCDEFGHIJKLMNOPQRSTUV
+// XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 `include "build_id.v" 
 localparam CONF_STR = {
@@ -207,13 +212,15 @@ localparam CONF_STR = {
 	"D0F2,CAS,Cas File;",
 	"D0TD,Tape Rewind;",
 	"-;",
-	"S0,DSK,Mount Drive A:;",
+	"OE,FDD VY0010,No,Yes;",
+	"D1S0,DSK,Mount Drive A:;",
 	"-;",
 	"O12,Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
 	"O3,Border,No,Yes;",
 	"O79,Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%;",
 	"OAB,Scale,Normal,V-Integer,Narrower HV-Integer,Wider HV-Integer;",
 	"T0,Reset;",
+	"RF,Reset & Detach ROM Cartridge;",
 	"R0,Reset and close OSD;",
 	"V,v",`BUILD_DATE 
 };
@@ -254,7 +261,7 @@ hps_io #(.CONF_STR(CONF_STR)) hps_io
 
 	.buttons(buttons),
 	.status(status),
-	.status_menumask({status[12]}),
+	.status_menumask({~status[14], status[12]}),
 	
 	.ps2_key(ps2_key),
 	.joystick_0(joy0),
@@ -278,8 +285,17 @@ hps_io #(.CONF_STR(CONF_STR)) hps_io
 	.sd_buff_wr(sd_buff_wr)
 );
 
+reg rom_loaded = 0;
 wire ioctl_isROM = ioctl_download && (ioctl_index[5:0] == 6'd1);
 wire ioctl_isCAS = ioctl_download && (ioctl_index[5:0] == 6'd2);
+
+always @(posedge ioctl_isROM, posedge status[15]) begin
+   if (status[15])
+      rom_loaded <= 0;
+   else
+      if (ioctl_isROM)
+         rom_loaded <= 1;
+end 
 
 ///////////////////////   CLOCKS   ///////////////////////////////
 
@@ -311,7 +327,7 @@ always @(posedge clk_sys) begin
 end
 
 wire mapper_reset = last_mapper != status[6:4];
-wire reset = RESET | status[0] | buttons[1] | ioctl_isROM | mapper_reset;
+wire reset = RESET | status[0] | buttons[1] | ioctl_isROM | mapper_reset | status[15];
 
 //////////////////////////////////////////////////////////////////
 
@@ -346,6 +362,7 @@ msx1 MSX1
 	.ioctl_dout(ioctl_dout),
 	.ioctl_isROM(ioctl_isROM),
 	.ioctl_wait(ioctl_waitROM),
+	.rom_loaded(rom_loaded),
 	.cas_motor(motor),
 	.cas_audio_in(cas_audio_in),
 	.user_mapper(status[6:4]),
@@ -370,7 +387,8 @@ msx1 MSX1
 	.sd_buff_addr(sd_buff_addr),
 	.sd_buff_dout(sd_buff_dout),
 	.sd_buff_din(sd_buff_din[0]),
-	.sd_buff_wr(sd_buff_wr)
+	.sd_buff_wr(sd_buff_wr),
+	.fdd_enable(status[14])
 );
 
 /////////////////  VIDEO  /////////////////////////

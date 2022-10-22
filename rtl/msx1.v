@@ -24,6 +24,7 @@ module msx1
 	input   [7:0] ioctl_dout,
 	input         ioctl_isROM,
 	output        ioctl_wait,
+	input         rom_loaded,
 	output        cas_motor,
 	input         cas_audio_in,
 	input   [2:0] user_mapper,
@@ -50,7 +51,8 @@ module msx1
 	input   [7:0] sd_buff_dout,
 	output  [7:0] sd_buff_din,
 	input         sd_buff_wr,
-	input         sd_din_strobe
+	input         sd_din_strobe,
+	input         fdd_enable
 );
 
 //  -----------------------------------------------------------------------------
@@ -268,8 +270,8 @@ memory_mapper memory_mapper
 //  ----------------------------------------------------------------------------- 
 assign d_to_cpu = ~(CS01_n | SLTSL_n[0]) ? rom_q :
 						~(mreq_n | rd_n | ~rfrsh_n | SLTSL_n[3]) ? ram_q :
-						~(SLTSL_n[1])   ? d_from_cart_1 :
-						~(SLTSL_n[2])   ? d_from_cart_2 :
+						~(SLTSL_n[1] | ~rom_loaded)   ? d_from_cart_1 :
+						~(SLTSL_n[2] | ~fdd_enable)   ? d_from_cart_2 :
 						~(vdp_n | rd_n) ? d_from_vdp :
 						~(psg_n | rd_n) ? d_from_psg :
 						~(ppi_n | rd_n) ? d_from_8255 : 8'hFF;
@@ -387,6 +389,7 @@ vy0010 cart2
 	.sd_buff_dout(sd_buff_dout),
 	.sd_buff_din(sd_buff_din),
 	.sd_buff_wr(sd_buff_wr),
-	.sd_din_strobe(sd_din_strobe)
+	.sd_din_strobe(sd_din_strobe),
+	.fdd_enable(fdd_enable)
 );
 endmodule
