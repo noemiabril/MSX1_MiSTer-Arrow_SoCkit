@@ -25,8 +25,8 @@ module sys_top
 	input         FPGA_CLK1_50,
 	input         FPGA_CLK2_50,
 	input         FPGA_CLK3_50,
-/*
-	//////////// HDMI //////////
+
+/*	//////////// HDMI //////////
 	output        HDMI_I2C_SCL,
 	inout         HDMI_I2C_SDA,
 
@@ -111,22 +111,22 @@ module sys_top
 	input         BTN_RESET,
 `endif
 
-	////////// I/O ALT /////////
-	//output        SD_SPI_CS,
-	//input         SD_SPI_MISO,
-	//output        SD_SPI_CLK,
-	//output        SD_SPI_MOSI,
-
+/*	////////// I/O ALT /////////
+	output        SD_SPI_CS,
+	input         SD_SPI_MISO,
+	output        SD_SPI_CLK,
+	output        SD_SPI_MOSI,
+*/
 	inout         SDCD_SPDIF,
 	output        IO_SCL,
 	inout         IO_SDA,
 
-	////////// ADC //////////////
-	//output        ADC_SCK,
-	//input         ADC_SDO,
-	//output        ADC_SDI,
-	//output        ADC_CONVST,
-
+/*	////////// ADC //////////////
+	output        ADC_SCK,
+	input         ADC_SDO,
+	output        ADC_SDI,
+	output        ADC_CONVST,
+*/
 	////////// MB KEY ///////////
 	input   [1:0] KEY,
 
