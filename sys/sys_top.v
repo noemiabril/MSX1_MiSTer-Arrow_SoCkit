@@ -74,7 +74,7 @@ module sys_top
 	output  [7:0] VGA_B,
 	inout         VGA_HS,  // VGA_HS is secondary SD card detect when VGA_EN = 1 (inactive)
 	output		  VGA_VS,
-	//input         VGA_EN,  // active low
+	//input      VGA_EN,  // active low
 	//SoCkit, DE10-standard, DE1-SoC implementation for on-board VGA DAC route - additional pins
 	output 		  VGA_CLK,
 	output 		  VGA_BLANK_N,
@@ -84,6 +84,21 @@ module sys_top
 	output		  AUDIO_L,
 	output		  AUDIO_R,
 	output		  AUDIO_SPDIF,
+
+	/////////// AUDIO //////////
+	//SoCkit, DE10-standard, DE1-SoC implementation for on-board Audio CODEC
+	// Audio CODEC
+	inout wire    AUD_ADCLRCK,  // Audio CODEC ADC LR Clock
+	input wire    AUD_ADCDAT,   // Audio CODEC ADC Data
+	inout wire    AUD_DACLRCK,  // Audio CODEC DAC LR Clock
+	output wire   AUD_DACDAT,   // Audio CODEC DAC Data
+	inout wire    AUD_BCLK,     // Audio CODEC Bit-Stream Clock
+	output wire   AUD_XCK,      // Audio CODEC Chip Clock
+	output wire   AUD_MUTE,		// Audio CODEC Mute (active low)
+
+	// I2C Audio CODEC
+	inout wire    AUD_I2C_SDAT,     // I2C Data
+	output wire   AUD_I2C_SCLK,     // I2C Clock
 
 	//////////// SDIO ///////////
 	inout   [3:0] SDIO_DAT,
@@ -121,7 +136,7 @@ module sys_top
 	////////// MB SWITCH ////////
 	//input   [3:0] SW,
 	//SoCkit, DE10-standard, DE1-SoC board implementation
-	inout   [3:0] SW,		
+	inout   [3:0] SW,
 
 	////////// MB LED ///////////
 	//output  [7:0] LED
