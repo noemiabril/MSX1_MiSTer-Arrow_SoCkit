@@ -24,6 +24,7 @@ module msx1
 	input         ioctl_isROMA,
 	input         ioctl_isROMB,
 	input         ioctl_isBIOS,
+	input         ioctl_isFWBIOS,
 	output        ioctl_wait,
 	input   [1:0] rom_enabled,
 	output        cas_motor,
@@ -57,14 +58,9 @@ module msx1
 //  -----------------------------------------------------------------------------
 //  -- Audio MIX
 //  -----------------------------------------------------------------------------
-
-wire [9:0]  pAudioPSG = {1'b0, ay_ch_mix[9:1]} + {keybeep,5'b00000} + {(cas_audio_in & ~cas_motor),5'b00000};
-wire [15:0] pAudioPCM = {sound_slots[14],sound_slots};
-
-wire [16:0] pcm   = {pAudioPCM[15], pAudioPCM};
-wire [15:0] fm    = {1'b0, pAudioPSG, 5'b00000};
-wire [16:0] audio_mix = {pcm[16], pcm[16:1]} + {fm[15], fm};
-
+wire  [9:0] audioPSG = ay_ch_mix + {keybeep,5'b00000} + {(cas_audio_in & ~cas_motor),4'b0000};                                        
+wire [15:0] fm       = {2'b0, audioPSG, 4'b0000};
+wire [16:0] audio_mix = {sound_slots[15], sound_slots} + {fm[15], fm};
 wire [15:0] compr[7:0] = '{ {1'b1, audio_mix[13:0], 1'b0}, 16'h8000, 16'h8000, 16'h8000, 16'h7FFF, 16'h7FFF, 16'h7FFF,  {1'b0, audio_mix[13:0], 1'b0}};
 assign audio = compr[audio_mix[16:14]];
 
@@ -146,6 +142,16 @@ spram #(.addr_width(15), .mem_init_file("rtl/rom/8020-00bios.mif"), .mem_name("R
 	.data(ioctl_dout)
 );
 
+wire [7:0] fw_rom_q;
+spram #(.addr_width(14), .mem_name("FWROM")) fw_rom
+(   
+	.clock(clk),
+	.address(ioctl_isFWBIOS ? ioctl_addr[13:0] : a[13:0]),
+	.q(fw_rom_q),
+	.wren(ioctl_isFWBIOS),
+	.data(ioctl_dout)
+);
+
 //  -----------------------------------------------------------------------------
 //  -- Video RAM 16k
 //  -----------------------------------------------------------------------------
@@ -153,7 +159,7 @@ wire [13:0] vram_a;
 wire [7:0]  vram_do;
 wire [7:0]  vram_di;
 wire        vram_we;
-spram #(14) vram
+spram #(.addr_width(14),.mem_name("VRAM")) vram
 (
 	.clock(clk),
 	.address(vram_a),
@@ -260,6 +266,7 @@ memory_mapper memory_mapper
 //  -- CPU data multiplex
 //  ----------------------------------------------------------------------------- 
 assign d_to_cpu = ~(CS01_n | SLTSL_n[0]) ? rom_q :
+                  ~(CS2_n  | SLTSL_n[0]) ? fw_rom_q :
 						~(SLTSL_n[1])          ? d_from_slots:
 						~(SLTSL_n[2])          ? d_from_slots:
 						~(SLTSL_n[3])          ? d_from_slots:                 
@@ -339,7 +346,7 @@ jt49_bus PSG
 //  -- SLOTS
 //  -----------------------------------------------------------------------------
 wire [7:0] d_from_slots;
-wire [14:0] sound_slots; 
+wire [15:0] sound_slots; 
 slots slots
 (
 	.clk(clk),

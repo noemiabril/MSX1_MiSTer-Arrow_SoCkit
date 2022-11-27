@@ -94,7 +94,7 @@ module sys_top
 	output wire   AUD_DACDAT,   // Audio CODEC DAC Data
 	inout wire    AUD_BCLK,     // Audio CODEC Bit-Stream Clock
 	output wire   AUD_XCK,      // Audio CODEC Chip Clock
-	output wire   AUD_MUTE,		// Audio CODEC Mute (active low)
+	//output wire   AUD_MUTE,		// Audio CODEC Mute (active low)
 
 	// I2C Audio CODEC
 	inout wire    AUD_I2C_SDAT,     // I2C Data
